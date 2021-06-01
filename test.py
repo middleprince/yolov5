@@ -24,7 +24,7 @@ def test(data,
          imgsz=640,
          conf_thres=0.001,
          iou_thres=0.6,  # for NMS
-         save_json=False,
+         save_json=True,
          single_cls=False,
          augment=False,
          verbose=False,
@@ -64,6 +64,10 @@ def test(data,
     half = device.type != 'cpu'  # half precision only supported on CUDA
     if half:
         model.half()
+    
+    # Prune
+    from utils.torch_utils import prune
+    prune(model=model, amount=0.3)
 
     # Configure
     model.eval()
