@@ -65,9 +65,9 @@ def test(data,
     if half:
         model.half()
     
-    # Prune
-    from utils.torch_utils import prune
-    prune(model=model, amount=0.3)
+    # Prune the model by 0.3
+    #from utils.torch_utils import prune
+    #prune(model=model, amount=0.3)
 
     # Configure
     model.eval()

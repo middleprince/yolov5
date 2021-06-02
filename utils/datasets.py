@@ -118,10 +118,11 @@ class _RepeatSampler(object):
         while True:
             yield from iter(self.sampler)
 
-
+# load images and video one file by one file. iterator
 class LoadImages:  # for inference
     def __init__(self, path, img_size=640, stride=32):
         p = str(Path(path).absolute())  # os-agnostic absolute path
+        # read whole files
         if '*' in p:
             files = sorted(glob.glob(p, recursive=True))  # glob
         elif os.path.isdir(p):
@@ -130,14 +131,15 @@ class LoadImages:  # for inference
             files = [p]  # files
         else:
             raise Exception(f'ERROR: {p} does not exist')
-
+        
+        # read iamge and video format 
         images = [x for x in files if x.split('.')[-1].lower() in img_formats]
         videos = [x for x in files if x.split('.')[-1].lower() in vid_formats]
         ni, nv = len(images), len(videos)
 
         self.img_size = img_size
         self.stride = stride
-        self.files = images + videos
+        self.files = images + videos # all file name
         self.nf = ni + nv  # number of files
         self.video_flag = [False] * ni + [True] * nv
         self.mode = 'image'
@@ -167,6 +169,7 @@ class LoadImages:  # for inference
                 if self.count == self.nf:  # last video
                     raise StopIteration
                 else:
+                    # read another new file
                     path = self.files[self.count]
                     self.new_video(path)
                     ret_val, img0 = self.cap.read()
@@ -185,8 +188,8 @@ class LoadImages:  # for inference
         img = letterbox(img0, self.img_size, stride=self.stride)[0]
 
         # Convert
-        img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
-        img = np.ascontiguousarray(img)
+        img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416, after column slice it will lose c order
+        img = np.ascontiguousarray(img) # c rol-first orders
 
         return path, img, img0, self.cap
 
@@ -198,7 +201,7 @@ class LoadImages:  # for inference
     def __len__(self):
         return self.nf  # number of files
 
-
+# load video from camera or ip camera
 class LoadWebcam:  # for inference
     def __init__(self, pipe='0', img_size=640, stride=32):
         self.img_size = img_size
@@ -358,7 +361,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
                 if p.is_dir():  # dir
                     f += glob.glob(str(p / '**' / '*.*'), recursive=True)
                     # f = list(p.rglob('**/*.*'))  # pathlib
-                elif p.is_file():  # file
+                elif p.is_file():  # file generate full path
                     with open(p, 'r') as t:
                         t = t.read().strip().splitlines()
                         parent = str(p.parent) + os.sep
@@ -372,7 +375,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         except Exception as e:
             raise Exception(f'{prefix}Error loading data from {path}: {e}\nSee {help_url}')
 
-        # Check cache
+        # Check cache, using torch method read and wirte cache file
         self.label_files = img2label_paths(self.img_files)  # labels
         cache_path = (p if p.is_file() else Path(self.label_files[0]).parent).with_suffix('.cache')  # cached labels
         if cache_path.is_file():
@@ -806,7 +809,7 @@ def replicate(img, labels):
 
     return img, labels
 
-
+# resize pad image for extract stride-multiple constrints.
 def letterbox(img, new_shape=(640, 640), color=(114, 114, 114), auto=True, scaleFill=False, scaleup=True, stride=32):
     # Resize and pad image while meeting stride-multiple constraints
     shape = img.shape[:2]  # current shape [height, width]
