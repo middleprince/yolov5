@@ -154,7 +154,7 @@ def detect(save_img=False):
         process.start()
         pools.append(process)
     for p in pools:
-        p.jion()
+        p.join()
         
     
 
