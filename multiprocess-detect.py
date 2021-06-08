@@ -16,12 +16,12 @@ from utils.general import check_img_size, check_requirements, check_imshow, non_
 from utils.plots import plot_one_box
 from utils.torch_utils import select_device, load_classifier, time_synchronized
 
-def detect_run(idx, source, imgsz, weights, save_txt, view_img): 
+def detect_run(idx, source, imgsz, weights, save_txt, view_img, opt): 
     webcam = source.isnumeric() or source.endswith('.txt') or source.lower().startswith(
         ('rtsp://', 'rtmp://', 'http://'))
 
     # Directories
-    save_dir = Path(increment_path(Path(opt.project) / idx /  opt.name, exist_ok=opt.exist_ok))  # increment run
+    save_dir = Path(increment_path(Path(opt.project) / f'{idx}' /  opt.name, exist_ok=opt.exist_ok))  # increment run
     (save_dir / 'labels' if save_txt else save_dir).mkdir(parents=True, exist_ok=True)  # make dir
 
     # Initialize
@@ -154,7 +154,7 @@ def detect(save_img=False):
         source_one = os.path.join(base_path, one)
         if not os.path.exists(source_one):
             exit(-1)
-        process = mp.Process(target=detect_run, args=(idx_one, source_one, imgsz_root, weights_root, save_txt_root, view_img_root))
+        process = mp.Process(target=detect_run, args=(idx_one, source_one, imgsz_root, weights_root, save_txt_root, view_img_root, opt))
         process.start()
         pools.append(process)
     for p in pools:
