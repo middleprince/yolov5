@@ -147,9 +147,13 @@ def detect(save_img=False):
     source_path, weights_root, view_img_root, save_txt_root, imgsz_root = opt.source_path, opt.weights, opt.view_img, opt.save_txt, opt.img_size
     # source is the input paths, which may contians multiple files.
     files = os.listdir(source_path)
+    base_path = os.path.abspath(source_path)
     n_proc = len(files)
     pools = []
-    for idx_one, source_one in enumerate(files):
+    for idx_one, one in enumerate(files):
+        source_one = os.path.join(base_path, one)
+        if not os.path.exists(source_one):
+            exit(-1)
         process = mp.Process(target=detect_run, args=(idx_one, source_one, imgsz_root, weights_root, save_txt_root, view_img_root))
         process.start()
         pools.append(process)
